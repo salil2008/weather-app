@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeMount, ref } from "vue";
+import { ref } from "vue";
 
 import { Bar, Line, Pie } from "vue-chartjs";
 
@@ -7,28 +7,45 @@ import { getRequest } from "../common/api.service";
 
 import Chart from "chart.js/auto";
 
+const DEFAULT_CHART_OPTIONS = {
+  responsive: true,
+};
+
 const loading = ref(false);
+const dataLoaded = ref(false);
 const searching = ref(false);
 const searchText = ref("");
 const queryText = ref("");
 
 const temperatureData = ref({
-  labels: [],
-  datasets: [],
+  data: {
+    datasets: [],
+  },
+  options: {
+    ...DEFAULT_CHART_OPTIONS,
+    plugins: { title: { display: true, text: "7 day temperature forcast" } },
+  },
 });
 const rainData = ref({
-  labels: [],
-  datasets: [],
+  data: {
+    datasets: [],
+  },
+  options: {
+    ...DEFAULT_CHART_OPTIONS,
+    plugins: { title: { display: true, text: "7 day rain forcast" } },
+  },
 });
 const monthlyData = ref({
-  labels: [],
-  datasets: [],
+  data: {
+    datasets: [],
+  },
+  options: {
+    ...DEFAULT_CHART_OPTIONS,
+    parsing: { xAxisKey: "x", yAxisKey: "y" },
+    plugins: { title: { display: true, text: "5 year temperature historical chart" } },
+  },
 });
 const locationList = ref([]);
-
-const chartOptions = ref({
-  responsive: true,
-});
 
 const processLocationList = (results) => {
   locationList.value = [];
@@ -44,13 +61,13 @@ const processChartData = ({ lineChartData, barChartData, pieChartData }) => {
   const pieLabel = [];
   const pieValues = [];
 
-  temperatureData.value = {
+  temperatureData.value.data = {
     datasets: [
       { label: "Temperature", tension: 0.1, data: lineChartData?.results },
     ],
   };
 
-  rainData.value = {
+  rainData.value.data = {
     datasets: [{ label: "Rain", tension: 0.1, data: barChartData?.results }],
   };
 
@@ -59,7 +76,7 @@ const processChartData = ({ lineChartData, barChartData, pieChartData }) => {
     pieValues.push(element.y);
   });
 
-  monthlyData.value = {
+  monthlyData.value.data = {
     labels: pieLabel,
     datasets: [
       {
@@ -95,7 +112,7 @@ const setCharts = async () => {
     };
 
     loading.value = true;
-
+    dataLoaded.value = false;
     const [lineChartData, barChartData, pieChartData] = await Promise.all([
       getDailyForcast({ ...payload, hourly: "temperature_2m" }),
       getDailyForcast({ ...payload, hourly: "rain" }),
@@ -112,6 +129,7 @@ const setCharts = async () => {
     console.error(error);
   } finally {
     loading.value = false;
+    dataLoaded.value = true;
   }
 };
 
@@ -132,8 +150,6 @@ const getLocationList = async () => {
     searching.value = false;
   }
 };
-
-onBeforeMount(async () => {});
 </script>
 
 <template>
@@ -172,34 +188,26 @@ onBeforeMount(async () => {});
         ></v-progress-circular>
       </v-col>
     </v-row>
-    <v-row v-if="!loading">
+    <v-row v-if="!loading && dataLoaded">
       <v-col>
         <v-row class="charts-box">
           <v-col>
             <div>
-              <Line
-                v-if="!loading"
-                :data="temperatureData"
-                :options="chartOptions"
-              />
+              <Line v-if="!loading" :data="temperatureData.data" :options="temperatureData.options" />
             </div>
           </v-col>
         </v-row>
         <v-row class="charts-box">
           <v-col>
             <div>
-              <Bar v-if="!loading" :data="rainData" :options="chartOptions" />
+              <Bar v-if="!loading" :data="rainData.data" :options="rainData.options" />
             </div>
           </v-col>
         </v-row>
         <v-row class="charts-box">
           <v-col>
             <div>
-              <Pie
-                v-if="!loading"
-                :data="monthlyData"
-                :options="{ parsing: { xAxisKey: 'x', yAxisKey: 'y' } }"
-              />
+              <Pie v-if="!loading" :data="monthlyData.data" :options="monthlyData.options" />
             </div>
           </v-col>
         </v-row>
