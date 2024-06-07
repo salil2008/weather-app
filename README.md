@@ -1,5 +1,5 @@
 
-# Multi-Service Project
+# Weather App
 
 This project consists of two services:
 1. A Vue.js application built with Vite.
