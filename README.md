@@ -35,7 +35,7 @@ Both services are dockerized, and the root project is set up with Docker Compose
 Clone this repository to your local machine:
 
 ```sh
-git clone <repository-url>
+git clone https://github.com/salil2008/weather-app.git
 cd weather-app
 ```
 
