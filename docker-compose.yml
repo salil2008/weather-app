@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  weather-ui-app:
+    build:
+      context: ./weather-ui
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./weather-ui:/app
+      - /app/node_modules
+    command: ["nginx", "-g", "daemon off;"]
+
+  weather-service-app:
+    build:
+      context: ./weather-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    volumes:
+      - ./weather-service:/app
+      - /app/node_modules
+    command: ["node", "dist/main"]
